@@ -10,7 +10,7 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = await this.prisma.user.create({
+    const user = await this.prisma.users.create({
       data: { email: dto.email, password: hashedPassword, name: dto.name },
     });
 
@@ -18,7 +18,7 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const user = await this.prisma.users.findUnique({ where: { email: dto.email } });
     if (!user) throw new UnauthorizedException('Email ou senha inválidos');
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);

@@ -7,13 +7,13 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(): Promise<Users[]> {
-    return this.prisma.user.findMany({
+    return this.prisma.users.findMany({
       where: { deletedAt: null },
     });
   }
 
   async findById(id: number): Promise<Users> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.users.findFirst({
       where: { id, deletedAt: null },
     });
 
@@ -23,7 +23,7 @@ export class UsersService {
 
   async update(id: number, data: Partial<Users>): Promise<Users> {
     await this.findById(id); // Verifica se existe
-    return this.prisma.user.update({
+    return this.prisma.users.update({
       where: { id },
       data,
     });
@@ -31,7 +31,7 @@ export class UsersService {
 
   async softDelete(id: number): Promise<Users> {
     await this.findById(id); // Verifica se existe
-    return this.prisma.user.update({
+    return this.prisma.users.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
