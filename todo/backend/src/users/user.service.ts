@@ -6,9 +6,9 @@ type SafeUser = {
   id: number;
   name: string;
   email: string;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at: Date | null;
 };
 
 @Injectable()
@@ -17,15 +17,15 @@ export class UsersService {
 
   async findAll(): Promise<SafeUser[]> {
     return this.prisma.users.findMany({
-      where: { deletedAt: null },
-      select: { id: true, name: true, email: true, createdAt: true, updatedAt: true, deletedAt: true },
+      where: { deleted_at: null },
+      select: { id: true, name: true, email: true, created_at: true, updated_at: true, deleted_at: true },
     });
   }
 
   async findById(id: number): Promise<SafeUser> {
     const user = await this.prisma.users.findFirst({
-      where: { id, deletedAt: null },
-      select: { id: true, name: true, email: true, createdAt: true, updatedAt: true, deletedAt: true },
+      where: { id, deleted_at: null },
+      select: { id: true, name: true, email: true, created_at: true, updated_at: true, deleted_at: true },
     });
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
@@ -44,7 +44,7 @@ export class UsersService {
     await this.findById(id);
     return this.prisma.users.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { deleted_at: new Date() },
     });
   }
 }
