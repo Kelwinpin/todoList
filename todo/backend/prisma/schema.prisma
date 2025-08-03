@@ -19,9 +19,9 @@ model Users {
   email     String    @unique
   password  String
   name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
   Tasks     Tasks[]
 }
 
@@ -32,11 +32,14 @@ model DOM_priority {
 }
 
 model Tasks {
-  id         Int       @id @default(autoincrement())
-  day_to_do  DateTime
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  day_to_do   DateTime
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
 
   // Relações
   user_id Int
