@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto, LoginDto } from './auth.dto';
@@ -9,6 +9,14 @@ export class AuthService {
   constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
   async register(dto: RegisterDto) {
+    if (dto.name === undefined || dto.email === undefined || dto.password === undefined) {
+      throw new BadRequestException('Campos obrigatórios não informados');
+    }
+
+    if (await this.prisma.users.findUnique({ where: { email: dto.email } })) {
+      throw new ConflictException('Email já cadastrado');
+    }
+
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.users.create({
       data: { email: dto.email, password: hashedPassword, name: dto.name },
