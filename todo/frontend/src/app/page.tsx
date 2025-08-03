@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import router from 'next/router'
+import { toast } from "sonner"
+import { authService } from '@/services/auth'
 
 interface LoginFormData {
   email: string
@@ -68,14 +69,35 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await authService.login({
+        email: formData.email,
+        password: formData.password,
+      })
       
-      console.log('Login realizado:', formData)
-      
-      router.push('/todo')
-      
-    } catch (error) {
-      console.error('Erro no login:', error)
+      toast("Login realizado com sucesso", {
+        icon: <ArrowRight className="h-5 w-5" />,
+        duration: 3000,
+        style: {
+          background: "rgba(0, 211, 0, 0.8)",
+          color: "white",
+          padding: "10px",
+          borderRadius: "5px",
+        },
+      })
+            
+    } catch (error: any) {
+      toast("Erro no login: " + error.message, {
+        icon: <AlertCircle className="h-5 w-5" />,
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "rgba(211, 0, 0, 0.8)",
+          color: "white",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+        },
+      })
     } finally {
       setIsLoading(false)
     }
