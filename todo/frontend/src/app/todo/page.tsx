@@ -1,76 +1,87 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Calendar, Trash2, Check, X, Edit3 } from 'lucide-react'
+import { Plus, Calendar, Trash2, Check, X, Edit3, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TodoForm from './todoForm'
 import { apiService } from '@/services/api'
+import { toast } from 'sonner'
 
 // Tipos TypeScript
 interface Task {
   id: string
-  name: string
-  date: string
-  priority: 'baixa' | 'media' | 'alta'
+  title: string
+  description: string
+  day_to_do: string
+  priority_id: number
   completed: boolean
   createdAt: Date
 }
 
-interface TaskFormData {
-  name: string
-  date: string
-  priority: 'baixa' | 'media' | 'alta'
+interface Priority {
+  id: number
+  description: string
+}
+
+interface TodoFormData {
+  title: string
+  description: string
+  day_to_do: string
+  priority_id: number
 }
 
 export default function TodoPage() {
   const [tasks, setTasks] = useState<Task[]>([])
-  const [formData, setFormData] = useState<TaskFormData>({
-    name: '',
-    date: '',
-    priority: 'media'
-  })
   const [isFormVisible, setIsFormVisible] = useState(false)
-  const [priorities, setPriorities] = useState<string[]>([])
+  const [priorities, setPriorities] = useState<Priority[]>([])
   const [editingTask, setEditingTask] = useState<string | null>(null)
+  const [editingData, setEditingData] = useState<TodoFormData | undefined>()
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
+  const handleFormSubmit = async (data: TodoFormData) => {
+    try {
+      if (editingTask) {
+        setTasks(prev => prev.map(task => 
+          task.id === editingTask 
+            ? { ...task, ...data }
+            : task
+        ))
+        setEditingTask(null)
+      } else {
+        apiService.post('/tasks', data).then(response => {
+          setTasks(prev => [...prev, response])
+        })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!formData.name.trim() || !formData.date) return
-
-    if (editingTask) {
-      // Editar tarefa existente
-      setTasks(prev => prev.map(task => 
-        task.id === editingTask 
-          ? { ...task, name: formData.name, date: formData.date, priority: formData.priority }
-          : task
-      ))
-      setEditingTask(null)
-    } else {
-      // Adicionar nova tarefa
-      const newTask: Task = {
-        id: Date.now().toString(),
-        name: formData.name,
-        date: formData.date,
-        priority: formData.priority,
-        completed: false,
-        createdAt: new Date()
+        toast("Tarefa adicionada com sucesso", {
+          icon: <Check className="h-5 w-5" />,
+          duration: 3000,
+          style: {
+            background: "rgba(0, 211, 0, 0.8)",
+            color: "white",
+            padding: "10px",
+            borderRadius: "5px",
+          },
+          position: "top-center",
+        })
       }
-      setTasks(prev => [...prev, newTask])
+    } catch (error: any) {
+      toast("Erro ao adicionar tarefa: " + error.message, {
+        icon: <AlertCircle className="h-5 w-5" />,
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "rgba(211, 0, 0, 0.8)",
+          color: "white",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+        },
+      })
+    } finally {
+      // Reset form
+      setIsFormVisible(false)
+      setEditingData(undefined)
     }
-
-    // Reset form
-    setFormData({ name: '', date: '', priority: 'media' })
-    setIsFormVisible(false)
   }
 
   const toggleTaskComplete = (id: string) => {
@@ -84,10 +95,11 @@ export default function TodoPage() {
   }
 
   const startEditTask = (task: Task) => {
-    setFormData({
-      name: task.name,
-      date: task.date,
-      priority: task.priority
+    setEditingData({
+      title: task.title,
+      description: task.description,
+      day_to_do: task.day_to_do,
+      priority_id: task.priority_id
     })
     setEditingTask(task.id)
     setIsFormVisible(true)
@@ -95,23 +107,29 @@ export default function TodoPage() {
 
   const cancelEdit = () => {
     setEditingTask(null)
-    setFormData({ name: '', date: '', priority: 'media' })
+    setEditingData(undefined)
     setIsFormVisible(false)
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
+  const getPriorityColor = (priorityId: number) => {
+    const priority = priorities.find(p => p.id === priorityId)
+    if (!priority) return 'text-gray-400 bg-gray-500/20'
+    
+    switch (priority.description.toLowerCase()) {
       case 'alta': return 'text-red-400 bg-red-500/20'
-      case 'média': return 'text-yellow-400 bg-yellow-500/20'
+      case 'média': case 'media': return 'text-yellow-400 bg-yellow-500/20'
       case 'baixa': return 'text-green-400 bg-green-500/20'
       default: return 'text-gray-400 bg-gray-500/20'
     }
   }
 
-  const getPriorityIcon = (priority: string) => {
-    switch (priority.toLowerCase()) {
+  const getPriorityIcon = (priorityId: number) => {
+    const priority = priorities.find(p => p.id === priorityId)
+    if (!priority) return '⚪'
+    
+    switch (priority.description.toLowerCase()) {
       case 'alta': return '🔴'
-      case 'média': return '🟡'
+      case 'média': case 'media': return '🟡'
       case 'baixa': return '🟢'
       default: return '⚪'
     }
@@ -162,11 +180,10 @@ export default function TodoPage() {
         {isFormVisible && (
             <TodoForm
               editingTask={editingTask}
-              formData={formData}
-              setFormData={setFormData}
-              cancelEdit={cancelEdit}
-              handleInputChange={handleInputChange}
-              handleSubmit={handleSubmit}
+              priorities={priorities}
+              onSubmit={handleFormSubmit}
+              onCancel={cancelEdit}
+              initialData={editingData}
             />
         )}
 
@@ -215,19 +232,24 @@ export default function TodoPage() {
                                 : 'text-white'
                             }`}
                             >
-                            {task.name}
+                            {task.title}
                             </h3>
+                            <p className={`text-sm mt-1 ${
+                                task.completed
+                                ? 'line-through text-gray-500'
+                                : 'text-gray-300'
+                            }`}>
+                            {task.description}
+                            </p>
                             <div className="flex items-center space-x-4 mt-1">
                             <span className="text-sm text-gray-300 flex items-center">
                                 <Calendar className="h-3 w-3 mr-1" />
-                                {new Date(task.date).toLocaleDateString('pt-BR')}
+                                {new Date(task.day_to_do).toLocaleDateString('pt-BR')}
                             </span>
                             <span
-                                className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(
-                                task.priority
-                                )}`}
+                                className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(task.priority_id)}`}
                             >
-                                {getPriorityIcon(task.priority)} {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                {getPriorityIcon(task.priority_id)} {priorities.find(p => p.id === task.priority_id)?.description || 'N/A'}
                             </span>
                             </div>
                         </div>
