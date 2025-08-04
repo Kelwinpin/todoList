@@ -43,6 +43,7 @@ export default function TodoPage() {
   const handleFormSubmit = async (data: TodoFormData) => {
     try {
       if (editingTask) {
+        await apiService.patch(`/tasks/${editingTask}`, data)
         setTasks(prev => prev.map(task => 
           task.id === editingTask 
             ? { ...task, ...data }
@@ -65,6 +66,8 @@ export default function TodoPage() {
           },
           position: "top-center",
         })
+
+        loadData()
       }
     } catch (error: any) {
       toast("Erro ao adicionar tarefa: " + error.message, {
@@ -93,7 +96,9 @@ export default function TodoPage() {
   }
 
   const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id))
+    apiService.delete(`/tasks/${id}`).then(() => {
+      setTasks(prev => prev.filter(task => task.id !== id))
+    })
   }
 
   const startEditTask = (task: Task) => {
@@ -137,23 +142,23 @@ export default function TodoPage() {
     }
   }
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true)
-        const [tasksResponse, prioritiesResponse] = await Promise.all([
-          apiService.get('/tasks'),
-          apiService.get('/priorities')
-        ])
-        setTasks(tasksResponse)
-        setPriorities(prioritiesResponse)
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error)
-      } finally {
-        setIsLoading(false)
-      }
+  const loadData = async () => {
+    try {
+      setIsLoading(true)
+      const [tasksResponse, prioritiesResponse] = await Promise.all([
+        apiService.get('/tasks'),
+        apiService.get('/priorities')
+      ])
+      setTasks(tasksResponse)
+      setPriorities(prioritiesResponse)
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error)
+    } finally {
+      setIsLoading(false)
     }
-    
+  }
+
+  useEffect(() => {  
     loadData()
   }, [])
 
