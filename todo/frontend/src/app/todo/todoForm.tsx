@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { LoadingSpinner } from "@/components/ui/loading";
 import { Calendar, Flag, X } from "lucide-react";
 
 interface TodoFormData {
@@ -23,6 +24,7 @@ interface TodoFormProps {
   onSubmit: (data: TodoFormData) => void
   onCancel: () => void
   initialData?: TodoFormData
+  isSubmitting?: boolean
 }
 
 const getPriorityIcon = (priorityDescription: string) => {
@@ -39,7 +41,8 @@ export default function TodoForm({
   priorities,
   onSubmit,
   onCancel,
-  initialData
+  initialData,
+  isSubmitting = false
 }: TodoFormProps) {
   const {
     register,
@@ -198,9 +201,17 @@ export default function TodoForm({
           <div className="flex gap-3 pt-4">
             <Button 
               type="submit" 
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all duration-200 transform hover:scale-[1.02]"
+              disabled={isSubmitting}
+              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {editingTask ? 'Salvar Alterações' : 'Adicionar Tarefa'}
+              {isSubmitting ? (
+                <div className="flex items-center space-x-2">
+                  <LoadingSpinner size="sm" className="text-white" />
+                  <span>{editingTask ? 'Salvando...' : 'Adicionando...'}</span>
+                </div>
+              ) : (
+                editingTask ? 'Salvar Alterações' : 'Adicionar Tarefa'
+              )}
             </Button>
           </div>
         </form>

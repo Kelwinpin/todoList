@@ -5,6 +5,8 @@ import { Plus, Calendar, Trash2, Check, X, Edit3, AlertCircle } from 'lucide-rea
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { LoadingSpinner } from '@/components/ui/loading'
+import { useLoading, useMultipleLoading } from '@/hooks/useLoading'
 import TodoForm from './todoForm'
 import { apiService } from '@/services/api'
 import { toast } from 'sonner'
@@ -38,68 +40,107 @@ export default function TodoPage() {
   const [priorities, setPriorities] = useState<Priority[]>([])
   const [editingTask, setEditingTask] = useState<string | null>(null)
   const [editingData, setEditingData] = useState<TodoFormData | undefined>()
-  const [isLoading, setIsLoading] = useState(true)
+  
+  // Using custom loading hook
+  const { isLoading, withLoading } = useLoading(true)
+  const { loadingStates, withLoading: withSpecificLoading } = useMultipleLoading([
+    'addTask', 
+    'editTask', 
+    'deleteTask', 
+    'toggleComplete'
+  ])
 
   const handleFormSubmit = async (data: TodoFormData) => {
-    try {
-      if (editingTask) {
-        await apiService.patch(`/tasks/${editingTask}`, data)
-        setTasks(prev => prev.map(task => 
-          task.id === editingTask 
-            ? { ...task, ...data }
-            : task
-        ))
-        setEditingTask(null)
-      } else {
-        apiService.post('/tasks', data).then(response => {
+    const actionKey = editingTask ? 'editTask' : 'addTask'
+    
+    await withSpecificLoading(actionKey, async () => {
+      try {
+        if (editingTask) {
+          await apiService.patch(`/tasks/${editingTask}`, data)
+          setTasks(prev => prev.map(task => 
+            task.id === editingTask 
+              ? { ...task, ...data }
+              : task
+          ))
+          setEditingTask(null)
+          
+          toast("Tarefa atualizada com sucesso", {
+            icon: <Check className="h-5 w-5" />,
+            duration: 3000,
+            style: {
+              background: "rgba(0, 211, 0, 0.8)",
+              color: "white",
+              padding: "10px",
+              borderRadius: "5px",
+            },
+            position: "top-center",
+          })
+        } else {
+          const response = await apiService.post('/tasks', data)
           setTasks(prev => [...prev, response])
-        })
 
-        toast("Tarefa adicionada com sucesso", {
-          icon: <Check className="h-5 w-5" />,
+          toast("Tarefa adicionada com sucesso", {
+            icon: <Check className="h-5 w-5" />,
+            duration: 3000,
+            style: {
+              background: "green",
+              color: "white",
+              padding: "10px",
+              borderRadius: "5px",
+            },
+            position: "top-center",
+          })
+        }
+      } catch (error: any) {
+        toast(`Erro ao ${editingTask ? 'atualizar' : 'adicionar'} tarefa: ` + error.message, {
+          icon: <AlertCircle className="h-5 w-5" />,
           duration: 3000,
+          position: "top-center",
           style: {
-            background: "rgba(0, 211, 0, 0.8)",
+            background: "red",
             color: "white",
+            border: "none",
             padding: "10px",
             borderRadius: "5px",
           },
-          position: "top-center",
         })
-
-        loadData()
+        throw error
       }
-    } catch (error: any) {
-      toast("Erro ao adicionar tarefa: " + error.message, {
-        icon: <AlertCircle className="h-5 w-5" />,
-        duration: 3000,
-        position: "top-center",
-        style: {
-          background: "rgba(211, 0, 0, 0.8)",
-          color: "white",
-          border: "none",
-          padding: "10px",
-          borderRadius: "5px",
-        },
-      })
-    } finally {
-      // Reset form
-      setIsFormVisible(false)
-      setEditingData(undefined)
-    }
+    })
+    
+    // Reset form
+    setIsFormVisible(false)
+    setEditingData(undefined)
   }
 
-  const toggleTaskComplete = (id: string) => {
-    apiService.patch(`/tasks/${id}`, { completed: !tasks.find(t => t.id === id)?.completed }).then(() => {        
+  const toggleTaskComplete = async (id: string) => {
+    await withSpecificLoading('toggleComplete', async () => {
+      const task = tasks.find(t => t.id === id)
+      if (!task) return
+      
+      await apiService.patch(`/tasks/${id}`, { completed: !task.completed })
       setTasks(prev => prev.map(task => 
         task.id === id ? { ...task, completed: !task.completed } : task
       ))
     })
   }
 
-  const deleteTask = (id: string) => {
-    apiService.delete(`/tasks/${id}`).then(() => {
+  const deleteTask = async (id: string) => {
+    await withSpecificLoading('deleteTask', async () => {
+      await apiService.delete(`/tasks/${id}`)
       setTasks(prev => prev.filter(task => task.id !== id))
+      
+      toast("Tarefa excluída com sucesso", {
+        icon: <Check className="h-5 w-5" />,
+        duration: 3000,
+        style: {
+          background: "rgba(0, 211, 0, 0.8)",
+          color: "white",
+          padding: "10px",
+          borderRadius: "5px",
+        },
+        position: "top-center",
+      })
     })
   }
 
@@ -145,19 +186,30 @@ export default function TodoPage() {
   }
 
   const loadData = async () => {
-    try {
-      setIsLoading(true)
-      const [tasksResponse, prioritiesResponse] = await Promise.all([
-        apiService.get('/tasks'),
-        apiService.get('/priorities')
-      ])
-      setTasks(tasksResponse)
-      setPriorities(prioritiesResponse)
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-    } finally {
-      setIsLoading(false)
-    }
+    await withLoading(async () => {
+      try {
+        const [tasksResponse, prioritiesResponse] = await Promise.all([
+          apiService.get('/tasks'),
+          apiService.get('/priorities')
+        ])
+        setTasks(tasksResponse)
+        setPriorities(prioritiesResponse)
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error)
+        toast("Erro ao carregar dados", {
+          icon: <AlertCircle className="h-5 w-5" />,
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "rgba(211, 0, 0, 0.8)",
+            color: "white",
+            border: "none",
+            padding: "10px",
+            borderRadius: "5px",
+          },
+        })
+      }
+    })
   }
 
   useEffect(() => {  
@@ -210,6 +262,7 @@ export default function TodoPage() {
               onSubmit={handleFormSubmit}
               onCancel={cancelEdit}
               initialData={editingData}
+              isSubmitting={loadingStates.addTask || loadingStates.editTask}
             />
         )}
 
@@ -266,13 +319,18 @@ export default function TodoPage() {
                         <div className="flex items-center space-x-4 flex-1">
                         <button
                             onClick={() => toggleTaskComplete(task.id)}
+                            disabled={loadingStates.toggleComplete}
                             className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                             task.completed
                                 ? 'bg-green-500 border-green-500 text-white'
                                 : 'border-white/40 hover:border-green-400'
-                            }`}
+                            } ${loadingStates.toggleComplete ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            {task.completed && <Check className="h-3 w-3" />}
+                            {loadingStates.toggleComplete ? (
+                              <LoadingSpinner size="sm" className="text-white" />
+                            ) : (
+                              task.completed && <Check className="h-3 w-3" />
+                            )}
                         </button>
 
                         <div className="flex-1">
@@ -319,9 +377,14 @@ export default function TodoPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteTask(task.id)}
-                            className="hover:bg-red-500/20 text-red-400"
+                            disabled={loadingStates.deleteTask}
+                            className="hover:bg-red-500/20 text-red-400 disabled:opacity-50"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            {loadingStates.deleteTask ? (
+                              <LoadingSpinner size="sm" className="text-red-400" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
                         </Button>
                         </div>
                     </div>
