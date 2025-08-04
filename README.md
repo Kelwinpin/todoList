@@ -266,10 +266,6 @@ chore: tarefas de build/ci
 - 🔄 **Deploy** - Em configuração
 - 📋 **Documentação** - Em progresso
 
-## 📸 Screenshots
-
-> *Screenshots serão adicionados em breve*
-
 ## 📜 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
@@ -278,8 +274,6 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 **Kelwin Pin**
 - GitHub: [@Kelwinpin](https://github.com/Kelwinpin)
-- LinkedIn: [Seu LinkedIn](https://linkedin.com/in/seu-perfil)
-
 ---
 
 ⭐ **Se este projeto te ajudou, deixe uma estrela!** ⭐
