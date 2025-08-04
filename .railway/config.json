@@ -1,10 +1,7 @@
 {
   "build": {
-    "installCommand": "npm install",
-    "buildCommand": "npm run build",
-    "startCommand": "npm run start"
-  },
-  "deploy": {
-    "directory": "backend"
+    "installCommand": "cd todo/backend && npm install",
+    "buildCommand": "cd todo/backend && npm run build",
+    "startCommand": "cd todo/backend && npm run start"
   }
 }
