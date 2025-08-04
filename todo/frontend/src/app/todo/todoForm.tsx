@@ -1,15 +1,16 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingSpinner } from "@/components/ui/loading";
+import { DatePicker } from "@/components/datePicker";
 import { Calendar, Flag, X } from "lucide-react";
 
 interface TodoFormData {
   title: string
   description: string
-  day_to_do: string
+  day_to_do: Date
   priority_id: number
 }
 
@@ -49,12 +50,13 @@ export default function TodoForm({
     handleSubmit,
     formState: { errors },
     watch,
-    setValue
+    setValue,
+    control
   } = useForm<TodoFormData>({
     defaultValues: initialData || {
       title: '',
       description: '',
-      day_to_do: '',
+      day_to_do: new Date(),
       priority_id: priorities[0]?.id || 1
     }
   })
@@ -131,19 +133,23 @@ export default function TodoForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="day_to_do" className="block text-sm font-medium text-gray-200 mb-2">
+              <label className="block text-sm font-medium text-gray-200 mb-2">
                 <Calendar className="inline h-4 w-4 mr-1" />
                 Data para Fazer
               </label>
-              <Input
-                id="day_to_do"
-                type="date"
-                {...register('day_to_do', {
-                  required: 'Data é obrigatória'
-                })}
-                className={`bg-white/10 border-white/20 text-white focus:border-purple-400 focus:ring-purple-400 ${
-                  errors.day_to_do ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : ''
-                }`}
+              <Controller
+                name="day_to_do"
+                control={control}
+                rules={{ required: 'Data é obrigatória' }}
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Selecione a data"
+                    error={!!errors.day_to_do}
+                    className="bg-white/10 border-white/20 text-white focus:border-purple-400 focus:ring-purple-400"
+                  />
+                )}
               />
               {errors.day_to_do && (
                 <p className="text-red-400 text-sm mt-1">{errors.day_to_do.message}</p>

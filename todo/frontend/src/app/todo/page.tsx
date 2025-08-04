@@ -16,7 +16,7 @@ interface Task {
   id: string
   title: string
   description: string
-  day_to_do: string
+  day_to_do: string | Date
   priority_id: number
   completed: boolean
   createdAt: Date
@@ -30,7 +30,7 @@ interface Priority {
 interface TodoFormData {
   title: string
   description: string
-  day_to_do: string
+  day_to_do: Date
   priority_id: number
 }
 
@@ -53,13 +53,19 @@ export default function TodoPage() {
   const handleFormSubmit = async (data: TodoFormData) => {
     const actionKey = editingTask ? 'editTask' : 'addTask'
     
+    // Convert Date to string format for API
+    const apiData = {
+      ...data,
+      day_to_do: data.day_to_do.toISOString().split('T')[0] // YYYY-MM-DD format
+    }
+    
     await withSpecificLoading(actionKey, async () => {
       try {
         if (editingTask) {
-          await apiService.patch(`/tasks/${editingTask}`, data)
+          await apiService.patch(`/tasks/${editingTask}`, apiData)
           setTasks(prev => prev.map(task => 
             task.id === editingTask 
-              ? { ...task, ...data }
+              ? { ...task, ...apiData }
               : task
           ))
           setEditingTask(null)
@@ -76,7 +82,7 @@ export default function TodoPage() {
             position: "top-center",
           })
         } else {
-          const response = await apiService.post('/tasks', data)
+          const response = await apiService.post('/tasks', apiData)
           setTasks(prev => [...prev, response])
 
           toast("Tarefa adicionada com sucesso", {
@@ -148,7 +154,7 @@ export default function TodoPage() {
     setEditingData({
       title: task.title,
       description: task.description,
-      day_to_do: task.day_to_do,
+      day_to_do: typeof task.day_to_do === 'string' ? new Date(task.day_to_do) : task.day_to_do,
       priority_id: task.priority_id
     })
     setEditingTask(task.id)
