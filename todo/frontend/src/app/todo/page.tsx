@@ -90,9 +90,11 @@ export default function TodoPage() {
   }
 
   const toggleTaskComplete = (id: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ))
+    apiService.patch(`/tasks/${id}`, { completed: !tasks.find(t => t.id === id)?.completed }).then(() => {        
+      setTasks(prev => prev.map(task => 
+        task.id === id ? { ...task, completed: !task.completed } : task
+      ))
+    })
   }
 
   const deleteTask = (id: string) => {
@@ -217,7 +219,7 @@ export default function TodoPage() {
             {isLoading ? (
                 // Skeleton Loading
                 Array.from({ length: 3 }).map((_, index) => (
-                  <Card key={index} className="w-full max-w-2xl relative z-10 backdrop-blur-sm bg-white/10 border-white/20">
+                  <Card key={index} className="w-full max-w-lg relative z-10 backdrop-blur-sm bg-white/10 border-white/20">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4 flex-1">
