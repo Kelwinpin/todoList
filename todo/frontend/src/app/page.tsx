@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ interface FormErrors {
 }
 
 export default function LoginPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''
@@ -82,9 +84,13 @@ export default function LoginPage() {
           background: "rgba(0, 211, 0, 0.8)",
           color: "white",
           padding: "10px",
+          border: "none",
           borderRadius: "5px",
         },
+        position: "top-center",
       })
+      
+      router.push('/todo')
             
     } catch (error: any) {
       toast("Erro no login: " + error.message, {
