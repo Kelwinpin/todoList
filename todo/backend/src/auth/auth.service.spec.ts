@@ -144,7 +144,7 @@ describe('AuthService', () => {
 
     it('should handle bcrypt hash error', async () => {
       mockPrismaService.users.findUnique.mockResolvedValue(null);
-      mockBcrypt.hash.mockRejectedValue(new Error('Hash error'));
+      mockBcrypt.hash.mockRejectedValue(new Error('Hash error') as never);
 
       await expect(service.register(validRegisterDto)).rejects.toThrow(
         'Hash error',
@@ -214,7 +214,7 @@ describe('AuthService', () => {
 
     it('should handle bcrypt compare error', async () => {
       mockPrismaService.users.findUnique.mockResolvedValue(mockUser);
-      mockBcrypt.compare.mockRejectedValue(new Error('Compare error'));
+      mockBcrypt.compare.mockRejectedValue(new Error('Compare error') as never);
 
       await expect(service.login(validLoginDto)).rejects.toThrow(
         'Compare error',
