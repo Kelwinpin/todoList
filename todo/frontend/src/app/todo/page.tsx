@@ -40,6 +40,26 @@ export default function TodoPage() {
   const [priorities, setPriorities] = useState<Priority[]>([])
   const [editingTask, setEditingTask] = useState<string | null>(null)
   const [editingData, setEditingData] = useState<TodoFormData | undefined>()
+
+  // Utility functions for date handling
+  const parseDate = (dateString: string): Date => {
+    const parts = dateString.split('-')
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
+  }
+
+  const formatDateLocal = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const formatDateDisplay = (date: string | Date): string => {
+    if (typeof date === 'string') {
+      return parseDate(date).toLocaleDateString('pt-BR')
+    }
+    return date.toLocaleDateString('pt-BR')
+  }
   
   // Using custom loading hook
   const { isLoading, withLoading } = useLoading(true)
@@ -53,10 +73,9 @@ export default function TodoPage() {
   const handleFormSubmit = async (data: TodoFormData) => {
     const actionKey = editingTask ? 'editTask' : 'addTask'
     
-    // Convert Date to string format for API
     const apiData = {
       ...data,
-      day_to_do: data.day_to_do.toISOString().split('T')[0] // YYYY-MM-DD format
+      day_to_do: formatDateLocal(data.day_to_do)
     }
     
     await withSpecificLoading(actionKey, async () => {
@@ -151,10 +170,14 @@ export default function TodoPage() {
   }
 
   const startEditTask = (task: Task) => {
+    const dateValue = typeof task.day_to_do === 'string' 
+      ? parseDate(task.day_to_do) 
+      : task.day_to_do
+    
     setEditingData({
       title: task.title,
       description: task.description,
-      day_to_do: typeof task.day_to_do === 'string' ? new Date(task.day_to_do) : task.day_to_do,
+      day_to_do: dateValue,
       priority_id: task.priority_id
     })
     setEditingTask(task.id)
@@ -359,7 +382,7 @@ export default function TodoPage() {
                             <div className="flex items-center space-x-4 mt-1">
                             <span className="text-sm text-gray-300 flex items-center">
                                 <Calendar className="h-3 w-3 mr-1" />
-                                {new Date(task.day_to_do).toLocaleDateString('pt-BR')}
+                                {formatDateDisplay(task.day_to_do)}
                             </span>
                             <span
                                 className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(task.priority_id)}`}
