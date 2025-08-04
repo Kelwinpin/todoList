@@ -1,4 +1,7 @@
 [services.backend]
 source = "backend"
-build = "npm install && npm run build"
-start = "npm run start"
+build = "npm ci && npm cache clean --force && npx prisma generate && npm run build"
+start = "npm run start:prod"
+
+[services.backend.variables]
+NODE_VERSION = "20"
