@@ -10,7 +10,7 @@ class ApiService {
   private async request(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<any> {
+  ): Promise<unknown> {
     const url = `${this.baseURL}${endpoint}`;
     
     const token = localStorage.getItem('token');
@@ -39,25 +39,25 @@ class ApiService {
     }
   }
 
-  async get(endpoint: string): Promise<any> {
+  async get(endpoint: string): Promise<unknown> {
     return this.request(endpoint, { method: 'GET' });
   }
 
-  async post(endpoint: string, data: any): Promise<any> {
+  async post(endpoint: string, data: unknown): Promise<unknown> {
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async patch(endpoint: string, data: any): Promise<any> {
+  async patch(endpoint: string, data: unknown): Promise<unknown> {
     return this.request(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
   }
 
-  async delete(endpoint: string): Promise<any> {
+  async delete(endpoint: string): Promise<unknown> {
     return this.request(endpoint, { method: 'DELETE' });
   }
 }

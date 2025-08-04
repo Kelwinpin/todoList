@@ -92,8 +92,8 @@ export default function LoginPage() {
       
       router.push('/todo')
             
-    } catch (error: any) {
-      toast("Erro no login: " + error.message, {
+    } catch (error: unknown) {
+      toast("Erro no login: " + (error instanceof Error ? error.message : String(error)), {
         icon: <AlertCircle className="h-5 w-5" />,
         duration: 3000,
         position: "top-center",

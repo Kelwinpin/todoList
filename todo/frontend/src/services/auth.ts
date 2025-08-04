@@ -22,7 +22,7 @@ export interface User {
 
 class AuthService {
   async login(data: LoginData): Promise<AuthResponse> {
-    const response = await apiService.post('/auth/login', data);
+    const response = await apiService.post('/auth/login', data) as AuthResponse;
     
     if (response.access_token) {
       localStorage.setItem('token', response.access_token);
@@ -32,7 +32,7 @@ class AuthService {
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await apiService.post('/auth/register', data);
+    const response = await apiService.post('/auth/register', data) as AuthResponse;
     
     if (response.access_token) {
       localStorage.setItem('token', response.access_token);

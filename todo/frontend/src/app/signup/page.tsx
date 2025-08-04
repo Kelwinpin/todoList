@@ -57,8 +57,8 @@ export default function SignupPage() {
       
       reset()
             
-    } catch (error: any) {
-      toast("Erro ao criar conta: " + error.message, {
+    } catch (error: unknown) {
+      toast("Erro ao criar conta: " + (error instanceof Error ? error.message : String(error)), {
         icon: <AlertCircle className="h-5 w-5" />,
         duration: 3000,
         position: "top-center",

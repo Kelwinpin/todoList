@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Plus, Calendar, Trash2, Check, X, Edit3, AlertCircle } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import { Plus, Calendar, Trash2, Check, Edit3, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LoadingSpinner } from '@/components/ui/loading'
 import { useLoading, useMultipleLoading } from '@/hooks/useLoading'
@@ -102,7 +102,7 @@ export default function TodoPage() {
           })
         } else {
           const response = await apiService.post('/tasks', apiData)
-          setTasks(prev => [...prev, response])
+          setTasks(prev => [...prev, response as Task])
 
           toast("Tarefa adicionada com sucesso", {
             icon: <Check className="h-5 w-5" />,
@@ -116,8 +116,8 @@ export default function TodoPage() {
             position: "top-center",
           })
         }
-      } catch (error: any) {
-        toast(`Erro ao ${editingTask ? 'atualizar' : 'adicionar'} tarefa: ` + error.message, {
+      } catch (error: unknown) {
+        toast(`Erro ao ${editingTask ? 'atualizar' : 'adicionar'} tarefa: ` + (error instanceof Error ? error.message : String(error)), {
           icon: <AlertCircle className="h-5 w-5" />,
           duration: 3000,
           position: "top-center",
@@ -214,15 +214,15 @@ export default function TodoPage() {
     }
   }
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     await withLoading(async () => {
       try {
         const [tasksResponse, prioritiesResponse] = await Promise.all([
           apiService.get('/tasks'),
           apiService.get('/priorities')
         ])
-        setTasks(tasksResponse)
-        setPriorities(prioritiesResponse)
+        setTasks(tasksResponse as Task[])
+        setPriorities(prioritiesResponse as Priority[])
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
         toast("Erro ao carregar dados", {
@@ -239,11 +239,11 @@ export default function TodoPage() {
         })
       }
     })
-  }
+  }, [withLoading])
 
   useEffect(() => {  
     loadData()
-  }, [])
+  }, [loadData])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">

@@ -102,7 +102,7 @@ export function useMultipleLoading(keys: string[] = []): UseMultipleLoadingRetur
 }
 
 interface UseAsyncOperationOptions {
-  onSuccess?: (data: any) => void
+  onSuccess?: (data: unknown) => void
   onError?: (error: Error) => void
   showToast?: boolean
 }
