@@ -1,12 +1,12 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
   Delete,
-  ParseIntPipe
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PriorityService } from './priority.service';
 import { CreatePriorityDto, UpdatePriorityDto } from './priority.dto';
@@ -31,7 +31,10 @@ export class PriorityController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updatePriorityDto: UpdatePriorityDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePriorityDto: UpdatePriorityDto,
+  ) {
     return this.priorityService.update(id, updatePriorityDto);
   }
 

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePriorityDto, UpdatePriorityDto } from './priority.dto';
 
@@ -60,7 +64,9 @@ export class PriorityService {
     });
 
     if (tasksWithPriority) {
-      throw new BadRequestException('Não é possível excluir prioridade que está sendo usada por tasks');
+      throw new BadRequestException(
+        'Não é possível excluir prioridade que está sendo usada por tasks',
+      );
     }
 
     return await this.prisma.dOM_priority.delete({

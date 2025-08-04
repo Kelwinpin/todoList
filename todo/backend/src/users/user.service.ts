@@ -18,14 +18,28 @@ export class UsersService {
   async findAll(): Promise<SafeUser[]> {
     return this.prisma.users.findMany({
       where: { deleted_at: null },
-      select: { id: true, name: true, email: true, created_at: true, updated_at: true, deleted_at: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        created_at: true,
+        updated_at: true,
+        deleted_at: true,
+      },
     });
   }
 
   async findById(id: number): Promise<SafeUser> {
     const user = await this.prisma.users.findFirst({
       where: { id, deleted_at: null },
-      select: { id: true, name: true, email: true, created_at: true, updated_at: true, deleted_at: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        created_at: true,
+        updated_at: true,
+        deleted_at: true,
+      },
     });
 
     if (!user) throw new NotFoundException('Usuário não encontrado');

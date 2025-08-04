@@ -1,14 +1,14 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   UseGuards,
   Request,
-  ParseIntPipe
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TasksService } from './tasks.service';
@@ -42,8 +42,8 @@ export class TasksController {
   @Patch(':id')
   update(
     @Request() req,
-    @Param('id', ParseIntPipe) id: number, 
-    @Body() updateTaskDto: UpdateTaskDto
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTaskDto: UpdateTaskDto,
   ) {
     return this.tasksService.update(req.user.userId, id, updateTaskDto);
   }

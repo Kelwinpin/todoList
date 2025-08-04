@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTaskDto, UpdateTaskDto } from './tasks.dto';
 
@@ -12,7 +17,7 @@ export class TasksService {
     }
 
     const priority = await this.prisma.dOM_priority.findUnique({
-      where: { id: dto.priority_id }
+      where: { id: dto.priority_id },
     });
 
     if (!priority) {
@@ -72,7 +77,7 @@ export class TasksService {
 
     if (dto.priority_id) {
       const priority = await this.prisma.dOM_priority.findUnique({
-        where: { id: dto.priority_id }
+        where: { id: dto.priority_id },
       });
 
       if (!priority) {
