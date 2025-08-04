@@ -1,81 +1,50 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import Link from 'next/link'
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from "sonner"
 import { authService } from '@/services/auth'
-import Link from 'next/link'
 
-interface LoginFormData {
+interface SignupFormData {
+  name: string
   email: string
   password: string
+  confirmPassword: string
 }
 
-interface FormErrors {
-  email?: string
-  password?: string
-}
-
-export default function LoginPage() {
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: ''
-  })
-  const [errors, setErrors] = useState<FormErrors>({})
+export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    reset
+  } = useForm<SignupFormData>({
+    mode: 'onChange'
+  })
 
-    if (!formData.email) {
-      newErrors.email = 'Email é obrigatório'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email inválido'
-    }
+  const password = watch('password')
 
-    if (!formData.password) {
-      newErrors.password = 'Senha é obrigatória'
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    
-    if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: undefined
-      }))
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
-
+  const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
     
     try {
-      await authService.login({
-        email: formData.email,
-        password: formData.password,
+      await authService.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       })
       
-      toast("Login realizado com sucesso", {
+      toast("Conta criada com sucesso", {
         icon: <ArrowRight className="h-5 w-5" />,
         duration: 3000,
         style: {
@@ -85,9 +54,11 @@ export default function LoginPage() {
           borderRadius: "5px",
         },
       })
+      
+      reset()
             
     } catch (error: any) {
-      toast("Erro no login: " + error.message, {
+      toast("Erro ao criar conta: " + error.message, {
         icon: <AlertCircle className="h-5 w-5" />,
         duration: 3000,
         position: "top-center",
@@ -114,15 +85,42 @@ export default function LoginPage() {
       <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-white/10 border-white/20">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-3xl font-bold text-white">
-            Bem-vindo de volta
+            Criar Conta
           </CardTitle>
           <CardDescription className="text-gray-300">
-            Faça login em sua conta para continuar
+            Preencha os dados para criar sua conta
           </CardDescription>
         </CardHeader>
         
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium text-gray-200">
+                Nome
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Seu nome completo"
+                  {...register('name', {
+                    required: 'Nome é obrigatório',
+                    minLength: {
+                      value: 2,
+                      message: 'Nome deve ter pelo menos 2 caracteres'
+                    }
+                  })}
+                  className={`pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400 ${
+                    errors.name ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : ''
+                  }`}
+                />
+              </div>
+              {errors.name && (
+                <p className="text-red-400 text-sm">{errors.name.message}</p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-gray-200">
                 Email
@@ -131,18 +129,22 @@ export default function LoginPage() {
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   id="email"
-                  name="email"
                   type="email"
                   placeholder="seu@email.com"
-                  value={formData.email}
-                  onChange={handleInputChange}
+                  {...register('email', {
+                    required: 'Email é obrigatório',
+                    pattern: {
+                      value: /\S+@\S+\.\S+/,
+                      message: 'Email inválido'
+                    }
+                  })}
                   className={`pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400 ${
                     errors.email ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : ''
                   }`}
                 />
               </div>
               {errors.email && (
-                <p className="text-red-400 text-sm">{errors.email}</p>
+                <p className="text-red-400 text-sm">{errors.email.message}</p>
               )}
             </div>
 
@@ -154,11 +156,15 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleInputChange}
+                  {...register('password', {
+                    required: 'Senha é obrigatória',
+                    minLength: {
+                      value: 6,
+                      message: 'Senha deve ter pelo menos 6 caracteres'
+                    }
+                  })}
                   className={`pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400 ${
                     errors.password ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : ''
                   }`}
@@ -172,7 +178,39 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-400 text-sm">{errors.password}</p>
+                <p className="text-red-400 text-sm">{errors.password.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-200">
+                Confirmar Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  {...register('confirmPassword', {
+                    required: 'Confirmação de senha é obrigatória',
+                    validate: (value) => 
+                      value === password || 'Senhas não coincidem'
+                  })}
+                  className={`pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400 ${
+                    errors.confirmPassword ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : ''
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-red-400 text-sm">{errors.confirmPassword.message}</p>
               )}
             </div>
 
@@ -184,11 +222,11 @@ export default function LoginPage() {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Entrando...</span>
+                  <span>Criando conta...</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <span>Entrar</span>
+                  <span>Criar Conta</span>
                   <ArrowRight className="h-4 w-4" />
                 </div>
               )}
@@ -197,9 +235,9 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-gray-300 text-sm">
-              Não tem uma conta?{' '}
-              <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
-                Cadastre-se aqui
+              Já tem uma conta?{' '}
+              <Link href="/" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+                Faça login aqui
               </Link>
             </p>
           </div>
