@@ -1,0 +1,7 @@
+{
+  "scripts": {
+   "start:backend": "cd todo/backend && npm run start:dev",
+   "start:frontend": "cd todo/frontend && npm run dev",
+   "build:backend": "cd todo/backend && npm run build"
+  }
+}
