@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Calendar, Trash2, Check, X, Edit3, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import TodoForm from './todoForm'
 import { apiService } from '@/services/api'
 import { toast } from 'sonner'
@@ -37,6 +38,7 @@ export default function TodoPage() {
   const [priorities, setPriorities] = useState<Priority[]>([])
   const [editingTask, setEditingTask] = useState<string | null>(null)
   const [editingData, setEditingData] = useState<TodoFormData | undefined>()
+  const [isLoading, setIsLoading] = useState(true)
 
   const handleFormSubmit = async (data: TodoFormData) => {
     try {
@@ -136,13 +138,23 @@ export default function TodoPage() {
   }
 
   useEffect(() => {
-    apiService.get('/tasks').then(response => {
-      setTasks(response)
-    })
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const [tasksResponse, prioritiesResponse] = await Promise.all([
+          apiService.get('/tasks'),
+          apiService.get('/priorities')
+        ])
+        setTasks(tasksResponse)
+        setPriorities(prioritiesResponse)
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
     
-    apiService.get('/priorities').then(response => {
-      setPriorities(response)
-    })
+    loadData()
   }, [])
 
   return (
@@ -163,7 +175,7 @@ export default function TodoPage() {
         </div>
 
         {/* Add Task Button */}
-        {!isFormVisible && (
+        {!isFormVisible && !isLoading && (
           <div className="text-center mb-8">
             <Button
               onClick={() => setIsFormVisible(true)}
@@ -173,6 +185,13 @@ export default function TodoPage() {
               <Plus className="h-5 w-5 mr-2" />
               Nova Tarefa
             </Button>
+          </div>
+        )}
+
+        {/* Loading Button Skeleton */}
+        {isLoading && (
+          <div className="text-center mb-8">
+            <Skeleton className="h-10 w-32 mx-auto bg-white/20" />
           </div>
         )}
 
@@ -190,7 +209,32 @@ export default function TodoPage() {
         {/* Tasks List */}
         {!isFormVisible &&
             <div className="space-y-4 flex flex-col items-center justify-center">
-            {tasks.length === 0 ? (
+            {isLoading ? (
+                // Skeleton Loading
+                Array.from({ length: 3 }).map((_, index) => (
+                  <Card key={index} className="w-full max-w-2xl relative z-10 backdrop-blur-sm bg-white/10 border-white/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4 flex-1">
+                          <Skeleton className="h-6 w-6 rounded-full bg-white/20" />
+                          <div className="flex-1">
+                            <Skeleton className="h-4 w-3/4 mb-2 bg-white/20" />
+                            <Skeleton className="h-3 w-1/2 mb-2 bg-white/20" />
+                            <div className="flex items-center space-x-4">
+                              <Skeleton className="h-3 w-20 bg-white/20" />
+                              <Skeleton className="h-5 w-16 rounded-full bg-white/20" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Skeleton className="h-8 w-8 bg-white/20" />
+                          <Skeleton className="h-8 w-8 bg-white/20" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+            ) : tasks.length === 0 ? (
                 <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-white/10 border-white/20">
                 <CardContent className="p-12 text-center">
                     <div className="text-6xl mb-4">📝</div>
