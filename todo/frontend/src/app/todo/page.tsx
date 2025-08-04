@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus, Calendar, Trash2, Check, X, Edit3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TodoForm from './todoForm'
+import { apiService } from '@/services/api'
 
 // Tipos TypeScript
 interface Task {
@@ -30,6 +31,7 @@ export default function TodoPage() {
     priority: 'media'
   })
   const [isFormVisible, setIsFormVisible] = useState(false)
+  const [priorities, setPriorities] = useState<string[]>([])
   const [editingTask, setEditingTask] = useState<string | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -98,32 +100,32 @@ export default function TodoPage() {
   }
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
+    switch (priority.toLowerCase()) {
       case 'alta': return 'text-red-400 bg-red-500/20'
-      case 'media': return 'text-yellow-400 bg-yellow-500/20'
+      case 'média': return 'text-yellow-400 bg-yellow-500/20'
       case 'baixa': return 'text-green-400 bg-green-500/20'
       default: return 'text-gray-400 bg-gray-500/20'
     }
   }
 
   const getPriorityIcon = (priority: string) => {
-    switch (priority) {
+    switch (priority.toLowerCase()) {
       case 'alta': return '🔴'
-      case 'media': return '🟡'
+      case 'média': return '🟡'
       case 'baixa': return '🟢'
       default: return '⚪'
     }
   }
 
-  const sortedTasks = [...tasks].sort((a, b) => {
-    // Primeiro por completado (não completadas primeiro)
-    if (a.completed !== b.completed) {
-      return a.completed ? 1 : -1
-    }
-    // Depois por prioridade
-    const priorityOrder = { alta: 3, media: 2, baixa: 1 }
-    return priorityOrder[b.priority] - priorityOrder[a.priority]
-  })
+  useEffect(() => {
+    apiService.get('/tasks').then(response => {
+      setTasks(response)
+    })
+    
+    apiService.get('/priorities').then(response => {
+      setPriorities(response)
+    })
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
@@ -171,7 +173,7 @@ export default function TodoPage() {
         {/* Tasks List */}
         {!isFormVisible &&
             <div className="space-y-4 flex flex-col items-center justify-center">
-            {sortedTasks.length === 0 ? (
+            {tasks.length === 0 ? (
                 <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-white/10 border-white/20">
                 <CardContent className="p-12 text-center">
                     <div className="text-6xl mb-4">📝</div>
@@ -184,7 +186,7 @@ export default function TodoPage() {
                 </CardContent>
                 </Card>
             ) : (
-                sortedTasks.map((task) => (
+                tasks.map((task) => (
                 <Card
                     key={task.id}
                     className={`transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm bg-white/10 border-white/20 ${
