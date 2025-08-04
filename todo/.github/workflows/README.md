@@ -118,13 +118,3 @@ Adicione estes badges ao README principal:
     ├── security.yml    # Análise de segurança
     └── README.md       # Esta documentação
 ```
-
-## Melhorias Futuras
-
-- [ ] Integração com SonarQube
-- [ ] Deploy para múltiplos ambientes (staging, production)
-- [ ] Notificações via Slack/Discord
-- [ ] Cache mais otimizado
-- [ ] Testes de performance
-- [ ] Deploy com Docker
-- [ ] Rollback automático em caso de falha
