@@ -247,7 +247,7 @@ cd ../backend && npm run build
 ### **Padrões de Commit**
 ```bash
 feat: nova funcionalidade
-fix: correção de bug
+hotfix: correção de bug
 docs: documentação
 style: formatação
 refactor: refatoração
